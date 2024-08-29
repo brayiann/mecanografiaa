@@ -242,7 +242,12 @@
     </div>
 
     <script type="module">
-      import { words as INITIAL_WORDS } from "./data.js";
+      import {
+        spaceWords,
+        htmlWords,
+        cssWords,
+        javascriptWords,
+      } from "./data.js";
 
       const $time = document.querySelector("#time");
       const $paragraph = document.querySelector("#text-area");
@@ -252,9 +257,11 @@
       const $rankPercentile = document.querySelector("#rank-percentile");
       const $resetButton = document.querySelector("#reset");
       const $stopButton = document.querySelector("#stop");
+      const $categoryButtons = document.querySelectorAll(".category-button");
 
       const INITIAL_TIME = 30;
       let words = [];
+      let currentWords = htmlWords;
       let currentTime = INITIAL_TIME;
       let correctWords = 0;
       let correctLetters = 0;
@@ -264,7 +271,7 @@
 
       function initGame() {
         playing = false;
-        words = INITIAL_WORDS.sort(() => Math.random() - 0.5).slice(0, 50);
+        words = currentWords.sort(() => Math.random() - 0.5).slice(0, 50);
         currentTime = INITIAL_TIME;
         correctWords = 0;
         correctLetters = 0;
@@ -319,13 +326,40 @@
         const wpm = (correctWords * 60) / INITIAL_TIME;
         $wpm.textContent = `${wpm.toFixed(0)}`;
 
-        // Simulate rank calculation (you may want to implement a real ranking system)
+        // simualte rank xd
         const rank = Math.floor(Math.random() * 100) + 1;
         $rank.textContent = `${rank}`;
         $rankPercentile.textContent = `Top ${
           Math.floor(Math.random() * 20) + 1
         }% of players`;
       }
+      function changeCategory(newWords) {
+        currentWords = newWords;
+        initGame();
+      }
+
+      $categoryButtons.forEach((button) => {
+        button.addEventListener("click", (e) => {
+          const category = e.target.textContent;
+
+          switch (category) {
+            case "Space":
+              changeCategory(spaceWords);
+              break;
+            case "HTML":
+              changeCategory(htmlWords);
+              break;
+            case "CSS":
+              changeCategory(cssWords);
+              break;
+            case "JavaScript":
+              changeCategory(javascriptWords);
+              break;
+            default:
+              break;
+          }
+        });
+      });
 
       document.addEventListener("keydown", (e) => {
         if (!playing) startGame();
@@ -334,7 +368,20 @@
         const activeLetter = activeWord.querySelector("letter.active");
         const currentWord = activeWord.innerText.trim();
 
-        if (e.key === " ") {
+        let keyPressed = e.key;
+
+        if (e.key === "Shift" || e.key === "Control" || e.key === "Alt") {
+          return;
+        }
+        const specialChars = {
+          "<": "<",
+          ">": ">",
+          "/": "/",
+        };
+        if (specialChars[keyPressed]) {
+          keyPressed = specialChars[keyPressed];
+        }
+        if (keyPressed === " ") {
           e.preventDefault();
           const hasErrors =
             activeWord.querySelectorAll("letter:not(.correct)").length > 0;
@@ -359,17 +406,16 @@
           return;
         }
 
-        if (/^[a-zA-Z]$/.test(e.key)) {
-          const letterClass =
-            e.key === activeLetter.innerText ? "correct" : "incorrect";
-          activeLetter.classList.add(letterClass);
-          letterClass === "correct" ? correctLetters++ : incorrectLetters++;
+        // Comparar la tecla presionada con la letra actual
+        const letterClass =
+          keyPressed === activeLetter.innerText ? "correct" : "incorrect";
+        activeLetter.classList.add(letterClass);
+        letterClass === "correct" ? correctLetters++ : incorrectLetters++;
 
-          activeLetter.classList.remove("active");
-          const nextLetter = activeLetter.nextElementSibling;
-          if (nextLetter) {
-            nextLetter.classList.add("active");
-          }
+        activeLetter.classList.remove("active");
+        const nextLetter = activeLetter.nextElementSibling;
+        if (nextLetter) {
+          nextLetter.classList.add("active");
         }
       });
 
