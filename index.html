@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Typing Game - Space Themed UI</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --green: #00b755;
+        --yellow: #daaf38;
+        --red: #ca4754;
+        --black: #181e28;
+        --gray: #aaa;
+        --blue: #66ccff;
+        --dark-gray: #2a3b4f;
+      }
+
+      body {
+        background: var(--black);
+        font-family: "Roboto Mono", monospace;
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 32px;
+      }
+
+      header {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      .game-container {
+        display: flex;
+        justify-content: space-between;
+        background-color: var(--dark-gray);
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 900px;
+        width: 100%;
+      }
+
+      .stats {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 20px;
+        width: 25%; /* Ajuste de ancho */
+      }
+
+      .stats div {
+        background-color: var(--black);
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+      }
+
+      .stats h2 {
+        margin: 0;
+        font-size: 24px;
+      }
+
+      .stats p {
+        margin: 5px 0 0;
+        font-size: 18px;
+        color: var(--blue);
+      }
+
+      .typing-area {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        background-color: var(--black);
+        padding: 20px;
+        border-radius: 10px;
+        width: 70%; /* Ajuste de ancho */
+      }
+
+      .typing-area word {
+        margin-right: 10px; /* Espaciado entre palabras */
+      }
+
+      .typing-area p {
+        margin: 0;
+        font-size: 24px;
+        color: var(--gray);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px; /* Espaciado entre letras */
+      }
+
+      letter.correct {
+        color: var(--green);
+      }
+
+      letter.incorrect {
+        color: var(--red);
+      }
+
+      letter.active::before {
+        content: "|";
+        color: var(--yellow);
+        animation: blink 1s infinite;
+        margin: -7px;
+      }
+
+      @keyframes blink {
+        0%,
+        50% {
+          opacity: 1;
+        }
+        51%,
+        100% {
+          opacity: 0;
+        }
+      }
+
+      button {
+        background: var(--blue);
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 5px;
+        font-size: 18px;
+        cursor: pointer;
+        margin-top: 20px;
+      }
+
+      button:hover {
+        background: #44aaff;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Typing Game - Space Themed</h1>
+    </header>
+
+    <div class="game-container">
+      <div class="stats">
+        <div>
+          <h2>Accuracy</h2>
+          <p id="accuracy">0%</p>
+        </div>
+        <div>
+          <h2>Words Per Minute</h2>
+          <p id="wpm">0</p>
+        </div>
+        <div>
+          <h2>Time Remaining</h2>
+          <p id="time">30s</p>
+        </div>
+      </div>
+
+      <div class="typing-area">
+        <p id="text-area"></p>
+        <button id="reset">Reset</button>
+      </div>
+    </div>
+
+    <script type="module">
+      import { words as INITIAL_WORDS } from "./data.js";
+
+      const $time = document.querySelector("#time");
+      const $paragraph = document.querySelector("#text-area");
+      const $accuracy = document.querySelector("#accuracy");
+      const $wpm = document.querySelector("#wpm");
+      const $resetButton = document.querySelector("#reset");
+
+      const INITIAL_TIME = 10;
+      let words = [];
+      let currentTime = INITIAL_TIME;
+      let correctWords = 0;
+      let correctLetters = 0;
+      let incorrectLetters = 0;
+      let playing = false;
+
+      function initGame() {
+        playing = false;
+        words = INITIAL_WORDS.sort(() => Math.random() - 0.5).slice(0, 50);
+        currentTime = INITIAL_TIME;
+        correctWords = 0;
+        correctLetters = 0;
+        incorrectLetters = 0;
+        $time.textContent = `${currentTime}s`;
+        $accuracy.textContent = `0%`;
+        $wpm.textContent = `0`;
+
+        $paragraph.innerHTML = words
+          .map((word) => {
+            return `<word>${[...word]
+              .map((letter) => `<letter>${letter}</letter>`)
+              .join("")}</word>`;
+          })
+          .join("");
+
+        const firstWord = $paragraph.querySelector("word");
+        firstWord.classList.add("active");
+        firstWord.querySelector("letter").classList.add("active");
+      }
+
+      function startGame() {
+        if (playing) return;
+        playing = true;
+
+        const interval = setInterval(() => {
+          currentTime--;
+          $time.textContent = `${currentTime}s`;
+
+          if (currentTime === 0) {
+            clearInterval(interval);
+            gameOver();
+          }
+        }, 1000);
+      }
+
+      function gameOver() {
+        playing = false;
+        const totalLetters = correctLetters + incorrectLetters;
+        const accuracy =
+          totalLetters > 0 ? (correctLetters / totalLetters) * 100 : 0;
+        $accuracy.textContent = `${accuracy.toFixed(2)}%`;
+        $wpm.textContent = `${(correctWords * 60) / INITIAL_TIME}`;
+      }
+
+      document.addEventListener("keydown", (e) => {
+        if (!playing) startGame();
+
+        const activeWord = $paragraph.querySelector("word.active");
+        const activeLetter = activeWord.querySelector("letter.active");
+        const currentWord = activeWord.innerText.trim();
+
+        if (e.key === " ") {
+          e.preventDefault();
+          const hasErrors =
+            activeWord.querySelectorAll("letter:not(.correct)").length > 0;
+          if (!hasErrors) correctWords++;
+
+          activeWord.classList.remove("active");
+          const nextWord = activeWord.nextElementSibling;
+          if (nextWord) {
+            nextWord.classList.add("active");
+            nextWord.querySelector("letter").classList.add("active");
+          }
+          return;
+        }
+
+        if (e.key === "Backspace") {
+          e.preventDefault();
+          const prevLetter = activeLetter.previousElementSibling;
+          if (prevLetter) {
+            activeLetter.classList.remove("active");
+            prevLetter.classList.add("active");
+          }
+          return;
+        }
+
+        if (/^[a-zA-Z]$/.test(e.key)) {
+          const letterClass =
+            e.key === activeLetter.innerText ? "correct" : "incorrect";
+          activeLetter.classList.add(letterClass);
+          letterClass === "correct" ? correctLetters++ : incorrectLetters++;
+
+          activeLetter.classList.remove("active");
+          const nextLetter = activeLetter.nextElementSibling;
+          if (nextLetter) {
+            nextLetter.classList.add("active");
+          }
+        }
+      });
+
+      $resetButton.addEventListener("click", initGame);
+
+      initGame();
+    </script>
+  </body>
+</html>
