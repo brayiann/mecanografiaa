@@ -122,7 +122,8 @@
         flex: 1;
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
+        justify-content: center;
+        align-items: center;
         background-color: var(--dark-gray);
         padding: 20px;
         border-top: 1px solid rgb(255, 255, 255);
@@ -131,7 +132,7 @@
       }
 
       .typing-area word {
-        margin-right: 10px;
+        margin-right: 1px;
       }
 
       .typing-area p {
@@ -141,6 +142,12 @@
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
+      }
+      .typing-area-buttons {
+        display: flex;
+        justify-content: flex-start;
+        gap: 10px;
+        margin-top: 20px;
       }
 
       letter.correct {
@@ -227,7 +234,10 @@
 
       <div class="typing-area">
         <p id="text-area"></p>
-        <button id="reset">Reset</button>
+        <div class="typing-area-buttons">
+          <button id="reset">Reset</button>
+          <button id="stop">Stop</button>
+        </div>
       </div>
     </div>
 
@@ -241,6 +251,7 @@
       const $rank = document.querySelector("#rank");
       const $rankPercentile = document.querySelector("#rank-percentile");
       const $resetButton = document.querySelector("#reset");
+      const $stopButton = document.querySelector("#stop");
 
       const INITIAL_TIME = 30;
       let words = [];
@@ -249,6 +260,7 @@
       let correctLetters = 0;
       let incorrectLetters = 0;
       let playing = false;
+      let interval;
 
       function initGame() {
         playing = false;
@@ -280,7 +292,7 @@
         if (playing) return;
         playing = true;
 
-        const interval = setInterval(() => {
+        interval = setInterval(() => {
           currentTime--;
           $time.textContent = `${currentTime}s`;
 
@@ -290,6 +302,13 @@
           }
         }, 1000);
       }
+      function stopGame() {
+        if (!playing) return;
+        clearInterval(interval);
+        gameOver();
+      }
+
+      $stopButton.addEventListener("click", stopGame);
 
       function gameOver() {
         playing = false;
