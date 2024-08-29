@@ -312,6 +312,7 @@
       function stopGame() {
         if (!playing) return;
         clearInterval(interval);
+        playing = false;
         gameOver();
       }
 
@@ -392,7 +393,11 @@
           if (nextWord) {
             nextWord.classList.add("active");
             nextWord.querySelector("letter").classList.add("active");
+          } else {
+            currentWordIndex += WORDS_PER_ROW; // Mover al siguiente set de palabras
+            renderWords();
           }
+
           return;
         }
 
