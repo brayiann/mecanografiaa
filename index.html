@@ -21,6 +21,11 @@
         --blue: #66ccff;
         --dark-gray: #2a3b4f;
       }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
 
       body {
         background: var(--black);
@@ -33,6 +38,7 @@
         padding: 32px;
         margin: 0;
         font-size: 13px;
+        min-height: 100vh;
       }
 
       header {
@@ -61,6 +67,7 @@
         display: flex;
         justify-content: space-between;
         width: 100%;
+        flex: 1;
       }
 
       .stats {
