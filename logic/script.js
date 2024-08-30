@@ -16,7 +16,7 @@ const $resetButton = document.querySelector("#reset");
 const $stopButton = document.querySelector("#stop");
 const $categoryButtons = document.querySelectorAll(".category-button");
 
-const INITIAL_TIME = 10;
+const INITIAL_TIME = 60;
 const WORDS_PER_BATCH = 30;
 const REFRES_THRESHOLD = 16;
 
