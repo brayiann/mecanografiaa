@@ -16,7 +16,7 @@ const $resetButton = document.querySelector("#reset");
 const $stopButton = document.querySelector("#stop");
 const $categoryButtons = document.querySelectorAll(".category-button");
 
-const INITIAL_TIME = 60;
+const INITIAL_TIME = 10;
 const WORDS_PER_BATCH = 30;
 const REFRES_THRESHOLD = 16;
 
@@ -48,25 +48,28 @@ function initGame() {
   renderWords();
 }
 
+// funcion para comenzar el juego
 function startGame() {
-  if (playing) return;
+  if (playing) return; // si comenzo el game, no se hace nada
   playing = true;
-
+  // disminuye el tiempo cada seg
   interval = setInterval(() => {
     currentTime--;
     $time.textContent = `${currentTime}s`;
-
-    if (currentTime === 0) {
-      clearInterval(interval);
+    //cuando llege a 0 se para el gamee
+    if (currentTime <= 0) {
+      clearInterval(interval); // se detiene el temporizador
+      $time.textContent = "0s"; // se pone el tiempo en 0
       gameOver();
     }
-  }, 1000);
+  }, 1000); // cada (1s)
 }
 
+// parar el game manualmente
 function stopGame() {
   if (!playing) return;
   clearInterval(interval);
-  playing = false;
+  playing = false; // el juego ha terminado
   gameOver();
 }
 
@@ -74,12 +77,13 @@ $stopButton.addEventListener("click", stopGame);
 
 function gameOver() {
   playing = false;
-  const totalLetters = correctLetters + incorrectLetters;
-  const accuracy = totalLetters > 0 ? (correctLetters / totalLetters) * 100 : 0;
-  $accuracy.textContent = `${accuracy.toFixed(2)}%`;
-  const wpm = (correctWords * 60) / INITIAL_TIME;
-  $wpm.textContent = `${wpm.toFixed(0)}`;
+  const totalLetters = correctLetters + incorrectLetters; // total de letras
+  const accuracy = totalLetters > 0 ? (correctLetters / totalLetters) * 100 : 0; // calcular precision
+  $accuracy.textContent = `${accuracy.toFixed(2)}%`; // mostrar precision
+  const wpm = (correctWords * 60) / INITIAL_TIME; // calcular wpm
+  $wpm.textContent = `${wpm.toFixed(0)}`; // mostrar wpm
 
+  // mostrar un rank aleatorio xd
   const rank = Math.floor(Math.random() * 100) + 1;
   $rank.textContent = `${rank}`;
   $rankPercentile.textContent = `Top ${
@@ -87,15 +91,17 @@ function gameOver() {
   }% of players`;
 }
 
+// cambiar de categoria
 function changeCategory(newWords) {
   currentWords = newWords;
-  initGame();
+  initGame(); // reiniciar el game conla nueva categoria
 }
-
+// asignar event Click a los buttons de categoria
 $categoryButtons.forEach((button) => {
   button.addEventListener("click", (e) => {
-    const category = e.target.textContent;
+    const category = e.target.textContent; // obtener la categoria seleccionada
 
+    // cambiar las palabras dependiendo de la categoria
     switch (category) {
       case "Space":
         changeCategory(spaceWords);
@@ -118,14 +124,17 @@ $categoryButtons.forEach((button) => {
   });
 });
 
+// eventos de teclado
 document.addEventListener("keydown", (e) => {
-  if (!playing) startGame();
+  if (!playing) startGame(); // si no se esta jugando, se inicia el game apretando cualquier tecla
 
+  // verificar si se escribio bien/mal la letra y palabra
   const activeWord = $paragraph.querySelector("word.active");
   const activeLetter = activeWord.querySelector("letter.active");
 
-  let keyPressed = e.key;
+  let keyPressed = e.key; // obtener la tecla presionada
 
+  // ignorar estas teclas
   if (
     e.key === "Shift" ||
     e.key === "Control" ||
@@ -134,7 +143,7 @@ document.addEventListener("keydown", (e) => {
   ) {
     return;
   }
-
+  // teclas especiales que se pueden usar
   const specialChars = {
     "<": "<",
     ">": ">",
@@ -144,21 +153,24 @@ document.addEventListener("keydown", (e) => {
   if (specialChars[keyPressed]) {
     keyPressed = specialChars[keyPressed];
   }
-
+  // si se preciona el space se preve su comportamiento por defecto
   if (keyPressed === " ") {
     e.preventDefault();
+    // comprobar si la palabra tiene errores
     const hasErrors =
       activeWord.querySelectorAll("letter:not(.correct)").length > 0;
-    if (!hasErrors) correctWords++;
+    if (!hasErrors) correctWords++; // incrementamos el contador de palabras correctas
 
     activeWord.classList.remove("active");
-    wordsCompletedInCurrentBatch++;
+    wordsCompletedInCurrentBatch++; // Incrementamos el contador de palabras completadas de este grupo
 
+    // si se completo el grupo de palabras, se genera otro grupo
     if (wordsCompletedInCurrentBatch === REFRES_THRESHOLD) {
       currentWordIndex += REFRES_THRESHOLD;
       wordsCompletedInCurrentBatch = 0;
       renderWords();
     } else {
+      //mientras no se llege al max de palabras por grupo, se activa la proxima palabra
       const nextWord = activeWord.nextElementSibling;
       if (nextWord) {
         nextWord.classList.add("active");
@@ -170,55 +182,60 @@ document.addEventListener("keydown", (e) => {
   }
 
   if (e.key === "Backspace") {
-    e.preventDefault();
-    const prevLetter = activeLetter.previousElementSibling;
+    e.preventDefault(); // evitar el comportamiento por defecto del backspace
+    const prevLetter = activeLetter.previousElementSibling; // obtener la letra anterior
     if (prevLetter) {
       activeLetter.classList.remove("active");
       prevLetter.classList.add("active");
     }
     return;
   }
-
+  // saber si la letra presionada es correcta o no
   const letterClass =
-    keyPressed === activeLetter.innerText ? "correct" : "incorrect";
-  activeLetter.classList.add(letterClass);
+    keyPressed === activeLetter.innerText ? "correct" : "incorrect"; // comparar la letra presionada con la letra activa
+  activeLetter.classList.add(letterClass); // agregar la clase correspondiente
   letterClass === "correct" ? correctLetters++ : incorrectLetters++;
 
-  activeLetter.classList.remove("active");
-  const nextLetter = activeLetter.nextElementSibling;
+  // cambiar la letra activa por la siguiente
+  activeLetter.classList.remove("active"); // quitar el active se la letra actual
+  const nextLetter = activeLetter.nextElementSibling; // obtener la letra siguiente
   if (nextLetter) {
-    nextLetter.classList.add("active");
+    nextLetter.classList.add("active"); // si hay otra letra, se le añade el active
   }
 });
 
+// mostrar las palabras
 function renderWords() {
   const visibleWords = words.slice(
-    currentWordIndex,
-    currentWordIndex + WORDS_PER_BATCH
+    currentWordIndex, // (0)
+    currentWordIndex + WORDS_PER_BATCH // (0 a 30)
   );
 
   // Si no quedan suficientes palabras, volver a mezclar y reutilizar
   if (visibleWords.length === 0) {
     words = currentWords.sort(() => Math.random() - 0.5);
-    currentWordIndex = 0;
-    renderWords();
+    currentWordIndex = 0; // mostrar desde el principip el nuevo grupo de palabras
+    renderWords(); // generar las palabras
     return;
   }
 
+  // Generamos el HTML para mostrar las palabras en la pantalla
   $paragraph.innerHTML = visibleWords
     .map((word) => {
+      // por cada palabra, se genera etiqueta <letter> para cada letra
       return `<word>${[...word]
         .map((letter) => `<letter>${letter}</letter>`)
         .join("")}</word>`;
     })
-    .join("");
+    .join(""); // Unimos todas las palabras generadas en una sola cadena de HTML
 
+  // Selecciona la primera palabra del parrafo y la marca como activa
   const firstWord = $paragraph.querySelector("word");
   if (firstWord) {
-    firstWord.classList.add("active");
-    firstWord.querySelector("letter").classList.add("active");
+    firstWord.classList.add("active"); // se le pone la clase active a la primera palabra
+    firstWord.querySelector("letter").classList.add("active"); // se le pone la clase active a la primera letra de la primera palabra
   }
 }
 
-$resetButton.addEventListener("click", initGame);
+$resetButton.addEventListener("click", initGame); // evento para reiniciar el juego
 initGame();
