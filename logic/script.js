@@ -1,4 +1,10 @@
-import { spaceWords, htmlWords, cssWords, javascriptWords } from "../data.js";
+import {
+  spaceWords,
+  htmlWords,
+  cssWords,
+  javascriptWords,
+  archlinux,
+} from "../data.js";
 
 const $time = document.querySelector("#time");
 const $paragraph = document.querySelector("#text-area");
@@ -103,6 +109,9 @@ $categoryButtons.forEach((button) => {
       case "JavaScript":
         changeCategory(javascriptWords);
         break;
+      case "ArchLinux":
+        changeCategory(archlinux);
+        break;
       default:
         break;
     }
@@ -125,6 +134,7 @@ document.addEventListener("keydown", (e) => {
     "<": "<",
     ">": ">",
     "/": "/",
+    "-": "-",
   };
   if (specialChars[keyPressed]) {
     keyPressed = specialChars[keyPressed];

@@ -28,7 +28,6 @@ body {
 }
 
 header {
-  background-color: var(--dark-gray);
   width: 100%;
   padding: 10px 20px;
   display: flex;
@@ -111,7 +110,7 @@ nav a {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background-color: var(--dark-gray);
+
   padding: 20px;
   border-top: 1px solid rgb(255, 255, 255);
   border-right: 1px solid rgb(255, 255, 255);
