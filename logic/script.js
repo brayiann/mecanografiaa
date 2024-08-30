@@ -11,6 +11,9 @@ const $stopButton = document.querySelector("#stop");
 const $categoryButtons = document.querySelectorAll(".category-button");
 
 const INITIAL_TIME = 30;
+const WORDS_PER_BATCH = 30;
+const REFRES_THRESHOLD = 16;
+
 let words = [];
 let currentWords = htmlWords;
 let currentTime = INITIAL_TIME;
@@ -19,31 +22,24 @@ let correctLetters = 0;
 let incorrectLetters = 0;
 let playing = false;
 let interval;
+let currentWordIndex = 0;
+let wordsCompletedInCurrentBatch = 0;
 
 function initGame() {
   playing = false;
-  words = currentWords.sort(() => Math.random() - 0.5).slice(0, 50);
+  words = currentWords.sort(() => Math.random() - 0.5);
   currentTime = INITIAL_TIME;
   correctWords = 0;
   correctLetters = 0;
   incorrectLetters = 0;
+  currentWordIndex = 0;
+  wordsCompletedInCurrentBatch = 0;
   $time.textContent = `${currentTime}s`;
   $accuracy.textContent = `0%`;
   $wpm.textContent = `0`;
   $rank.textContent = `-`;
   $rankPercentile.textContent = ``;
-
-  $paragraph.innerHTML = words
-    .map((word) => {
-      return `<word>${[...word]
-        .map((letter) => `<letter>${letter}</letter>`)
-        .join("")}</word>`;
-    })
-    .join("");
-
-  const firstWord = $paragraph.querySelector("word");
-  firstWord.classList.add("active");
-  firstWord.querySelector("letter").classList.add("active");
+  renderWords();
 }
 
 function startGame() {
@@ -60,6 +56,7 @@ function startGame() {
     }
   }, 1000);
 }
+
 function stopGame() {
   if (!playing) return;
   clearInterval(interval);
@@ -77,13 +74,13 @@ function gameOver() {
   const wpm = (correctWords * 60) / INITIAL_TIME;
   $wpm.textContent = `${wpm.toFixed(0)}`;
 
-  // simualte rank xd
   const rank = Math.floor(Math.random() * 100) + 1;
   $rank.textContent = `${rank}`;
   $rankPercentile.textContent = `Top ${
     Math.floor(Math.random() * 20) + 1
   }% of players`;
 }
+
 function changeCategory(newWords) {
   currentWords = newWords;
   initGame();
@@ -123,6 +120,7 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Shift" || e.key === "Control" || e.key === "Alt") {
     return;
   }
+
   const specialChars = {
     "<": "<",
     ">": ">",
@@ -131,6 +129,7 @@ document.addEventListener("keydown", (e) => {
   if (specialChars[keyPressed]) {
     keyPressed = specialChars[keyPressed];
   }
+
   if (keyPressed === " ") {
     e.preventDefault();
     const hasErrors =
@@ -138,10 +137,18 @@ document.addEventListener("keydown", (e) => {
     if (!hasErrors) correctWords++;
 
     activeWord.classList.remove("active");
-    const nextWord = activeWord.nextElementSibling;
-    if (nextWord) {
-      nextWord.classList.add("active");
-      nextWord.querySelector("letter").classList.add("active");
+    wordsCompletedInCurrentBatch++;
+
+    if (wordsCompletedInCurrentBatch === REFRES_THRESHOLD) {
+      currentWordIndex += REFRES_THRESHOLD;
+      wordsCompletedInCurrentBatch = 0;
+      renderWords();
+    } else {
+      const nextWord = activeWord.nextElementSibling;
+      if (nextWord) {
+        nextWord.classList.add("active");
+        nextWord.querySelector("letter").classList.add("active");
+      }
     }
 
     return;
@@ -157,7 +164,6 @@ document.addEventListener("keydown", (e) => {
     return;
   }
 
-  // Comparar la tecla presionada con la letra actual
   const letterClass =
     keyPressed === activeLetter.innerText ? "correct" : "incorrect";
   activeLetter.classList.add(letterClass);
@@ -169,6 +175,35 @@ document.addEventListener("keydown", (e) => {
     nextLetter.classList.add("active");
   }
 });
+
+function renderWords() {
+  const visibleWords = words.slice(
+    currentWordIndex,
+    currentWordIndex + WORDS_PER_BATCH
+  );
+
+  // Si no quedan suficientes palabras, volver a mezclar y reutilizar
+  if (visibleWords.length === 0) {
+    words = currentWords.sort(() => Math.random() - 0.5);
+    currentWordIndex = 0;
+    renderWords();
+    return;
+  }
+
+  $paragraph.innerHTML = visibleWords
+    .map((word) => {
+      return `<word>${[...word]
+        .map((letter) => `<letter>${letter}</letter>`)
+        .join("")}</word>`;
+    })
+    .join("");
+
+  const firstWord = $paragraph.querySelector("word");
+  if (firstWord) {
+    firstWord.classList.add("active");
+    firstWord.querySelector("letter").classList.add("active");
+  }
+}
 
 $resetButton.addEventListener("click", initGame);
 initGame();
