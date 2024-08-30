@@ -16,7 +16,7 @@ const $resetButton = document.querySelector("#reset");
 const $stopButton = document.querySelector("#stop");
 const $categoryButtons = document.querySelectorAll(".category-button");
 
-const INITIAL_TIME = 30;
+const INITIAL_TIME = 60;
 const WORDS_PER_BATCH = 30;
 const REFRES_THRESHOLD = 16;
 
@@ -126,7 +126,12 @@ document.addEventListener("keydown", (e) => {
 
   let keyPressed = e.key;
 
-  if (e.key === "Shift" || e.key === "Control" || e.key === "Alt") {
+  if (
+    e.key === "Shift" ||
+    e.key === "Control" ||
+    e.key === "Alt" ||
+    e.ley === "CapsLock"
+  ) {
     return;
   }
 
