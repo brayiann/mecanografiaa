@@ -103,7 +103,20 @@ nav a {
   cursor: pointer;
   font-size: 16px;
 }
+hr {
+  color: rgb(255, 255, 255);
+  margin: 0px -20px 5px -20px;
+}
+.tip-container {
+  text-align: center;
+  margin-top: 20px;
+}
 
+.tip {
+  font-size: 1.2em;
+  color: #fff;
+  font-style: italic;
+}
 .typing-area {
   flex: 1;
   display: flex;
