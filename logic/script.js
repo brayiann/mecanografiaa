@@ -30,6 +30,7 @@ let playing = false;
 let interval;
 let currentWordIndex = 0;
 let wordsCompletedInCurrentBatch = 0;
+let rank;
 
 function initGame() {
   playing = false;
@@ -84,11 +85,13 @@ function gameOver() {
   $wpm.textContent = `${wpm.toFixed(0)}`; // mostrar wpm
 
   // mostrar un rank aleatorio xd
-  const rank = Math.floor(Math.random() * 100) + 1;
-  $rank.textContent = `${rank}`;
-  $rankPercentile.textContent = `Top ${
-    Math.floor(Math.random() * 20) + 1
-  }% of players`;
+  if (rank === undefined) {
+    const rank = Math.floor(Math.random() * 100) + 1;
+    $rank.textContent = `${rank}`;
+    $rankPercentile.textContent = `Top ${
+      Math.floor(Math.random() * 20) + 1
+    }% of players`;
+  }
 }
 
 // cambiar de categoria
@@ -139,7 +142,7 @@ document.addEventListener("keydown", (e) => {
     e.key === "Shift" ||
     e.key === "Control" ||
     e.key === "Alt" ||
-    e.ley === "CapsLock"
+    e.key === "CapsLock"
   ) {
     return;
   }
